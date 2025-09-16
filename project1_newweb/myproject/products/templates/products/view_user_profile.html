@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hồ sơ người dùng - {{ user.username }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">Hồ sơ người dùng: {{ user.username }}</h1>
+                <a href="{% url 'admin_dashboard' %}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    ← Quay lại Dashboard
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Thông tin cơ bản</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Tên đăng nhập</label>
+                            <p class="text-lg font-semibold text-gray-900">{{ user.username }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Tên đầy đủ</label>
+                            <p class="text-lg text-gray-900">{{ user.get_full_name|default:"Chưa cập nhật" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Email</label>
+                            <p class="text-lg text-gray-900">{{ user.email|default:"Chưa cập nhật" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Quyền Admin</label>
+                            <p class="text-lg {{ user.profile.is_admin|yesno:'text-green-600 font-semibold,text-red-600 font-semibold' }}">
+                                {{ user.profile.is_admin|yesno:"Có,Không" }}
+                            </p>
+                        </div>
+                        {% if profile.avatar %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Ảnh đại diện</label>
+                            <img src="{{ profile.avatar.url }}" alt="Avatar" class="w-24 h-24 rounded-full object-cover mt-2">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Thông tin chi tiết</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Ngày tạo tài khoản</label>
+                            <p class="text-lg text-gray-900">{{ user.date_joined|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Ngày cập nhật lần cuối</label>
+                            <p class="text-lg text-gray-900">{{ profile.updated_at|default:user.date_joined|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        {% if profile.bio %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Giới thiệu</label>
+                            <p class="text-lg text-gray-900">{{ profile.bio }}</p>
+                        </div>
+                        {% endif %}
+                        {% if profile.phone %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                            <p class="text-lg text-gray-900">{{ profile.phone }}</p>
+                        </div>
+                        {% endif %}
+                        {% if profile.address %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Địa chỉ</label>
+                            <p class="text-lg text-gray-900">{{ profile.address }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            
+            {% if owned_courses %}
+            <div class="mt-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Khóa học do {{ user.username }} tạo</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-300 rounded-lg">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="py-2 px-4 border">Tên khóa học</th>
+                                <th class="py-2 px-4 border">Mô tả</th>
+                                <th class="py-2 px-4 border">Số học viên</th>
+                                <th class="py-2 px-4 border">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in owned_courses %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-2 px-4 border">
+                                    <a href="{% url 'course_detail' course.id %}" class="text-blue-500 hover:underline font-medium">
+                                        {{ course.title }}
+                                    </a>
+                                </td>
+                                <td class="py-2 px-4 border">{{ course.description|truncatewords:15 }}</td>
+                                <td class="py-2 px-4 border">{{ course.enrollments.count }}</td>
+                                <td class="py-2 px-4 border">
+                                    <a href="{% url 'course_detail' course.id %}" class="text-blue-500 hover:underline">Xem</a>
+                                    {% if is_admin %}
+                                    | <button onclick="confirmDeleteCourse('{{ course.id }}', '{{ course.title|escapejs }}')" class="text-red-500 hover:underline">Xóa</button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+          
+            {% if enrolled_courses %}
+            <div class="mt-8">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Khóa học {{ user.username }} đang tham gia</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-300 rounded-lg">
+                        <thead>
+                            <tr class="bg-gray-200">
+                                <th class="py-2 px-4 border">Tên khóa học</th>
+                                <th class="py-2 px-4 border">Người tạo</th>
+                                <th class="py-2 px-4 border">Ngày ghi danh</th>
+                                <th class="py-2 px-4 border">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in enrolled_courses %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-2 px-4 border">
+                                    <a href="{% url 'course_detail' enrollment.course.id %}" class="text-blue-500 hover:underline font-medium">
+                                        {{ enrollment.course.title }}
+                                    </a>
+                                </td>
+                                <td class="py-2 px-4 border">
+                                    <a href="{% url 'view_user_profile' enrollment.course.owner.id %}" class="text-blue-500 hover:underline">
+                                        {{ enrollment.course.owner.username }}
+                                    </a>
+                                </td>
+                                <td class="py-2 px-4 border">{{ enrollment.enrolled_at|date:"d/m/Y" }}</td>
+                                <td class="py-2 px-4 border">
+                                    <a href="{% url 'course_detail' enrollment.course.id %}" class="text-blue-500 hover:underline">Xem</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+       
+            {% if not owned_courses and not enrolled_courses %}
+            <div class="mt-8 text-center py-8 bg-gray-50 rounded-lg">
+                <p class="text-gray-500 text-lg">Người dùng này chưa tạo hoặc tham gia khóa học nào.</p>
+            </div>
+            {% endif %}
+
+        
+            {% if is_admin %}
+            <div class="mt-8 flex justify-end space-x-4">
+                <a href="{% url 'admin_dashboard' %}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
+                    Quay lại Dashboard
+                </a>
+                {% if user != request.user %}
+                <a href="{% url 'update_user' %}" class="bg-yellow-500 text-white px-6 py-2 rounded hover:bg-yellow-600" 
+                   onclick="return confirm('Bạn có chắc muốn chỉnh sửa hồ sơ của {{ user.username }}?')">
+                    Chỉnh sửa
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        
+        {% if is_admin %}
+        <div id="deleteCourseModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                <div class="mt-3">
+                    <h3 class="text-lg font-medium text-gray-900">Xác nhận xóa</h3>
+                    <div class="mt-2 px-7 py-3">
+                        <p class="text-sm text-gray-500">Bạn có chắc chắn muốn xóa khóa học này? Hành động này không thể hoàn tác.</p>
+                    </div>
+                    <div class="items-center px-4 py-3">
+                        <button id="confirmDeleteBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                            Xóa
+                        </button>
+                        <button id="cancelDeleteBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
+                            Hủy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+  
+    {% csrf_token %}
+
+    {% if is_admin %}
+    <script>
+        let currentCourseId = null;
+        let currentCourseTitle = null;
+
+        function confirmDeleteCourse(courseId, courseTitle) {
+            currentCourseId = courseId;
+            currentCourseTitle = courseTitle;
+            const modal = document.getElementById('deleteCourseModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            } else {
+                console.error('Modal element not found');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const cancelBtn = document.getElementById('cancelDeleteBtn');
+            const modal = document.getElementById('deleteCourseModal');
+
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function() {
+                    if (currentCourseId) {
+                        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+                        if (!csrfToken) {
+                            alert('Không tìm thấy CSRF token. Vui lòng thử lại.');
+                            return;
+                        }
+
+                        fetch('/course/' + currentCourseId + '/delete/', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrfToken,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({})
+                        })
+                        .then(function(response) {
+                            if (!response.ok) {
+                                throw new Error('HTTP error! status: ' + response.status);
+                            }
+                            return response.json();
+                        })
+                        .then(function(data) {
+                            if (data.success) {
+                                alert(data.message);
+                                window.location.reload();
+                            } else {
+                                alert(data.message || 'Lỗi khi xóa khóa học.');
+                            }
+                            if (modal) modal.classList.add('hidden');
+                        })
+                        .catch(function(error) {
+                            console.error('Error:', error);
+                            alert('Lỗi khi xóa khóa học: ' + error.message);
+                            if (modal) modal.classList.add('hidden');
+                        });
+                    }
+                });
+            } else {
+                console.error('Confirm button not found');
+            }
+
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function() {
+                    if (modal) modal.classList.add('hidden');
+                });
+            } else {
+                console.error('Cancel button not found');
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

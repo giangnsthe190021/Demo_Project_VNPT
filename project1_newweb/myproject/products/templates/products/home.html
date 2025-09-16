@@ -1,0 +1,218 @@
+{% extends 'products/base.html' %}
+{% load static %}
+{% block title %}Trang chủ{% endblock %}
+{% block content %}
+<style>
+  :root {
+    --blue-1: #E0F2FE; 
+    --blue-2: #BAE6FD;
+    --blue-3: #3B82F6; 
+    --white: #FFFFFF;
+    --gray-1: #F9FAFB; 
+    --gray-2: #6B7280; 
+    --navy: #1E3A8A; 
+  }
+
+  body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+  }
+
+  
+  .home-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--blue-1), var(--white), var(--blue-2));
+    padding: 2rem 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+
+  .jumbotron {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--blue-2);
+    text-align: center;
+  }
+
+  .jumbotron h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.75rem;
+    animation: fadeIn 0.6s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .jumbotron p {
+    font-size: 1.1rem;
+    color: var(--gray-2);
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-primary {
+    background: var(--blue-3);
+    color: var(--white);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s ease, transform 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background: #2563EB;
+    transform: translateY(-2px);
+  }
+
+
+  .section-title-box {
+    background: var(--blue-1);
+    border-radius: 10px;
+    padding: 0.75rem 2rem;
+    margin: 0 auto 2rem auto;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease;
+  }
+
+  .section-title-box:hover {
+    transform: translateY(-3px);
+  }
+
+  .section-title-box h3 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin: 0;
+  }
+
+
+  .alert-info {
+    background: var(--blue-1);
+    border: 1px solid var(--blue-2);
+    color: var(--navy);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .alert-link {
+    color: var(--blue-3);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .alert-link:hover {
+    text-decoration: underline;
+  }
+
+
+  .card-custom {
+    background: var(--white);
+    border: 1px solid var(--blue-2);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease forwards;
+  }
+
+  .card-custom:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--navy);
+    background: var(--blue-1);
+    padding: 0.5rem;
+    border-radius: 8px;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease;
+  }
+
+  .card-title:hover {
+    background: var(--blue-2);
+  }
+
+  .card-text {
+    font-size: 0.95rem;
+    color: var(--gray-2);
+    font-style: italic;
+  }
+
+  @media (max-width: 768px) {
+    .jumbotron h1 { font-size: 2rem; }
+    .section-title-box h3 { font-size: 1.5rem; }
+    .card-title { font-size: 1.1rem; }
+  }
+</style>
+
+<div class="home-container">
+  <div class="container">
+
+    <div class="jumbotron">
+      <h1>Chào mừng đến với MyProject</h1>
+      <p>Nơi lưu trữ tài liệu học tập, quiz tự động và flashcards. Hãy chọn một khóa học để bắt đầu.</p>
+      <div class="mt-4">
+        <a href="{% url 'create_course' %}" class="btn btn-primary">Tạo khóa học mới</a>
+      </div>
+    </div>
+
+   
+    <div class="mt-5 text-center">
+      <div class="section-title-box">
+        <h3>Khóa học của bạn</h3>
+      </div>
+      <div class="row g-4">
+        {% for c in courses %}
+          <div class="col-md-4 col-sm-6">
+            <div class="card h-100 card-custom">
+              <div class="card-body d-flex flex-column">
+                <a href="{% url 'course_detail' c.id %}" class="card-title">{{ c.title }}</a>
+                <p class="card-text flex-grow-1">{{ c.description|default:"Chưa có mô tả" }}</p>
+                <div class="d-flex justify-content-end align-items-center mt-auto">
+                  <small class="text-muted">Owner: {{ c.owner.username }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="col-12">
+            <div class="alert alert-info text-center">
+              Chưa có khóa học nào — hãy <a href="{% url 'create_course' %}" class="alert-link">tạo khóa học mới</a>.
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const cards = document.querySelectorAll(".card-custom");
+  cards.forEach((card, index) => {
+    card.style.animationDelay = (index * 0.2) + "s";
+  });
+});
+</script>
+{% endblock %}

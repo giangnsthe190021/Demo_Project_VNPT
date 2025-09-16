@@ -1,0 +1,141 @@
+{% extends 'products/base.html' %}
+{% block title %}Tạo khóa học{% endblock %}
+{% block content %}
+<style>
+  
+  .create-course-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #FFDEE9, #B5FFFC);
+    background-size: 400% 400%;
+    animation: gradientBG 12s ease infinite;
+    padding: 30px 0;
+  }
+
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+
+  .form-card {
+    max-width: 600px;
+    margin: auto;
+    background: #fff;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+    animation: fadeInUp 1s ease;
+  }
+
+  .form-card h2 {
+    text-align: center;
+    color: #FF69B4;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+
+  .form-card label {
+    font-weight: bold;
+    color: #444;
+  }
+
+  .form-card input, 
+  .form-card textarea, 
+  .form-card select {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    width: 100%;
+    transition: all 0.3s ease;
+  }
+
+  .form-card input:focus,
+  .form-card textarea:focus,
+  .form-card select:focus {
+    border-color: #87CEFA;
+    box-shadow: 0 0 10px rgba(135,206,250,0.5);
+    outline: none;
+  }
+
+  .btn-primary {
+    background: linear-gradient(45deg, #FF69B4, #87CEFA);
+    border: none;
+    padding: 10px 25px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    color: #fff;
+    width: 100%;
+  }
+
+  .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255,105,180,0.5);
+  }
+
+  .btn-secondary {
+    border-radius: 30px;
+    padding: 8px 20px;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-secondary:hover {
+    transform: scale(1.05);
+  }
+
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  ul.messages {
+    list-style: none;
+    padding: 0;
+  }
+
+  ul.messages li {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    animation: fadeIn 0.8s ease;
+  }
+
+  ul.messages li.success { background: #E0F7FA; color: #00796B; }
+  ul.messages li.error { background: #FFEBEE; color: #C62828; }
+  ul.messages li.info { background: #FFF3E0; color: #EF6C00; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
+
+<div class="create-course-container">
+  <div class="form-card">
+    <h2> Tạo khóa học mới </h2>
+
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Tạo khóa học</button>
+    </form>
+
+    <div class="text-center">
+      <a class="btn btn-secondary mt-3" href="{% url 'home' %}">⬅ Quay lại trang chủ</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

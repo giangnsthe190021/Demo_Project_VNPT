@@ -1,0 +1,209 @@
+{% extends 'products/base.html' %}
+{% load static %}
+{% load custom_tags %}
+{% block title %}Quiz: {{ file.file.name|slice:"/:1" }}{% endblock %}
+{% block content %}
+
+<style>
+  
+  .card.card-custom.p-4 {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfbff 100%);
+    border-radius: 14px;
+    padding: 1.8rem;
+    box-shadow: 0 12px 30px rgba(94, 58, 120, 0.12);
+    border: 1px solid rgba(126, 87, 194, 0.12);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .card.card-custom.p-4:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(94, 58, 120, 0.16);
+  }
+
+ 
+  .card.card-custom > .d-flex > h4 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #20506b;
+    margin: 0;
+    position: relative;
+    padding-bottom: 0.5rem;
+  }
+  .card.card-custom > .d-flex > h4::before {
+    content: "";
+    position: absolute;
+    left: -6%;
+    right: -6%;
+    bottom: -8px;
+    height: 10px;
+    background: linear-gradient(90deg, rgba(240,198,255,0.30), rgba(193,225,255,0.30));
+    border-radius: 6px;
+    z-index: -1;
+    filter: blur(6px);
+  }
+
+  
+  .quiz-question-block {
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(126, 87, 194, 0.06);
+    transition: background 0.22s ease, transform 0.18s ease;
+  }
+  .quiz-question-block:hover {
+    background: #f7faff;
+    transform: translateY(-4px);
+  }
+
+  .form-check-input:checked + .form-check-label {
+    color: #0B6E8F;
+    font-weight: 600;
+  }
+
+ 
+  .result-question { margin-bottom: 1.5rem; padding: 15px; border-radius: 8px; border: 2px solid #dee2e6; }
+  .result-question.correct { background-color: #d4edda; border-color: #28a745; }
+  .result-question.incorrect { background-color: #f8d7da; border-color: #dc3545; }
+  .result-option.correct-answer { background-color: #c3e6cb; padding: 5px; border-radius: 4px; color: #155724; }
+</style>
+
+<div class="card card-custom p-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h4 class="mb-0">Quiz tự động từ: {{ file.file.name|slice:"/:1"|default:"File không xác định" }}</h4>
+    <a href="{% url 'course_detail' course.id %}?file_id={{ file.id }}" class="btn btn-secondary btn-sm">Quay lại</a>
+  </div>
+  <hr>
+
+  <div id="quiz-area">
+    {% if results %}
+      
+      <div class="alert alert-info">
+        <h4>Kết quả: {{ score }} / {{ total_questions }} câu đúng</h4>
+        <div class="progress mb-3">
+          {% widthratio score total_questions 100 as percent %}
+          {% widthratio score total_questions 100 %}%
+            {{ percent }}%
+          </div>
+        </div>
+      </div>
+
+      {% for result in results %}
+        <div class="result-question {% if result.is_correct %}correct{% else %}incorrect{% endif %}">
+          <h5>{{ result.question }}</h5>
+          <ul class="list-unstyled">
+            {% for idx, opt in result.options %}
+              <li class="result-option 
+                  {% if idx in result.selected %}selected{% endif %}
+                  {% if idx in result.correct_indices %}correct-answer{% endif %}">
+                {{ opt }}
+                {% if idx in result.selected %}<strong>(Bạn đã chọn)</strong>{% endif %}
+                {% if idx in result.correct_indices %}<span class="badge badge-success">Đúng</span>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+          <div class="mt-2">
+            <span class="badge {% if result.is_correct %}badge-success{% else %}badge-danger{% endif %}">
+              {% if result.is_correct %}Đúng{% else %}Sai{% endif %}
+            </span>
+          </div>
+        </div>
+      {% endfor %}
+      <button class="btn btn-success mt-3" onclick="location.reload()">Làm lại</button>
+    {% else %}
+      {% if enumerated_questions %}
+        <form method="POST" action="{% url 'quiz_from_file' course.id file.id %}">
+          {% csrf_token %}
+          {% for i, q in enumerated_questions %}
+            <div class="mb-3 p-3 border rounded quiz-question-block">
+              <div><strong>Câu {{ i|add:1 }}:</strong> {{ q.question }}</div>
+              <div class="mt-2">
+                {% for j, opt in q.options %}
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox"
+                           name="q{{ i }}" id="q{{ i }}opt{{ j }}" value="{{ j }}">
+                    <label class="form-check-label" for="q{{ i }}opt{{ j }}">
+                      {{ opt }}
+                    </label>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+          <div class="mt-3">
+            <button id="submitQuiz" type="button" class="btn btn-primary me-2" disabled>Nộp bài</button>
+            <button id="showAnswers" type="button" class="btn btn-outline-secondary">Hiện đáp án</button>
+          </div>
+          <div id="result" class="mt-3"></div>
+        </form>
+      {% else %}
+        <div class="alert alert-warning">Không có câu hỏi nào được tạo. Vui lòng kiểm tra file và thử lại.</div>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+
+{{ questions|json_script:"quiz-data"|safe }}
+
+<script>
+(function(){
+  try {
+    const element = document.getElementById('quiz-data');
+    const qdata = element ? JSON.parse(element.textContent) : [];
+    const submitBtn = document.getElementById('submitQuiz');
+    const showBtn = document.getElementById('showAnswers');
+
+    function allQuestionsAnswered() {
+      return qdata.every((_, i) => {
+        const boxes = document.getElementsByName('q' + i);
+        return Array.from(boxes).some(cb => cb.checked);
+      });
+    }
+
+    function updateSubmitButton() {
+      submitBtn.disabled = !allQuestionsAnswered();
+    }
+
+    document.addEventListener('change', e => {
+      if (e.target.type === 'checkbox') updateSubmitButton();
+    });
+
+    submitBtn.addEventListener('click', e => {
+      e.preventDefault();
+      if (allQuestionsAnswered()) {
+        document.querySelector('form').submit();
+      } else {
+        alert('Vui lòng chọn ít nhất một đáp án cho mỗi câu hỏi!');
+      }
+    });
+
+    showBtn.addEventListener('click', e => {
+      e.preventDefault();
+      qdata.forEach((q, i) => {
+        const boxes = document.getElementsByName('q' + i);
+        boxes.forEach((cb, j) => {
+          const label = cb.nextElementSibling;
+          if (q.answer_indices.includes(j)) {
+            cb.checked = true;
+            label.style.fontWeight = 'bold';
+            label.style.color = '#28a745';
+          } else {
+            cb.checked = false;
+            label.style.opacity = '0.6';
+            label.style.color = '#6c757d';
+          }
+        });
+      });
+      showBtn.disabled = true;
+      showBtn.textContent = 'Đã hiển thị đáp án';
+      updateSubmitButton();
+    });
+
+    updateSubmitButton();
+  } catch (err) {
+    console.error('Quiz JS error:', err);
+  }
+})();
+</script>
+
+{% endblock %}

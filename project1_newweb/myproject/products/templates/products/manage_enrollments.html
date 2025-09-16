@@ -1,0 +1,100 @@
+{% extends 'products/base.html' %}
+{% block title %}Quản lý học viên: {{ course.title }}{% endblock %}
+{% block content %}
+<div class="card shadow-lg border-0 rounded-4 p-4 animate__animated animate__fadeIn">
+
+
+  <div class="title-banner text-center mb-4 animate__animated animate__fadeInDown">
+    <h2 class="fw-bold mb-1">Quản lý học viên</h2>
+    <p class="fst-italic mb-0">Khóa học: {{ course.title }}</p>
+  </div>
+
+  {% if messages %}
+    <div class="mb-3">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} animate__animated animate__fadeInUp" role="alert">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+
+  <div class="card mb-4 border-0 shadow-sm animate__animated animate__fadeInUp">
+    <div class="card-body">
+      <h5 class="fw-semibold mb-3"> Thêm học viên</h5>
+      <form method="post" class="d-flex gap-2">
+        {% csrf_token %}
+        <input type="text" name="student_username" id="student_username"
+               class="form-control" placeholder="Nhập tên học viên..." required>
+        <button type="submit" class="btn btn-primary hover-zoom">Thêm</button>
+      </form>
+    </div>
+  </div>
+
+
+  <div class="card border-0 shadow-sm animate__animated animate__fadeInUp">
+    <div class="card-body">
+      <h5 class="fw-semibold mb-3"> Danh sách học viên</h5>
+      {% if enrollments %}
+        <ul class="list-group">
+          {% for enrollment in enrollments %}
+            <li class="list-group-item d-flex justify-content-between align-items-center rounded-3 mb-2 shadow-sm">
+              <span class="fw-semibold">{{ enrollment.student.username }}</span>
+              <small class="text-muted"> {{ enrollment.enrolled_at|date:"d/m/Y H:i" }}</small>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted fst-italic"> Chưa có học viên nào.</p>
+      {% endif %}
+    </div>
+  </div>
+
+
+  <div class="mt-4">
+    <a class="btn btn-secondary hover-zoom" href="{% url 'course_detail' course.id %}">⬅ Quay lại khóa học</a>
+  </div>
+</div>
+
+
+<style>
+
+  .title-banner {
+    background: linear-gradient(135deg, #ff6ec7, #6eb5ff);
+    color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  .title-banner h2 {
+    font-size: 1.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .title-banner::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.3);
+    transform: skewX(-30deg);
+    transition: 0.7s;
+  }
+  .title-banner:hover::after {
+    left: 100%;
+  }
+
+
+  .hover-zoom {
+    transition: all 0.2s ease-in-out;
+  }
+  .hover-zoom:hover {
+    transform: scale(1.08);
+  }
+</style>
+{% endblock %}

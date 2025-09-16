@@ -1,0 +1,131 @@
+{% extends 'products/base.html' %}
+{% block title %}Chi tiết khóa học: {{ course.title }}{% endblock %}
+{% block content %}
+<div class="card shadow-lg border-0 rounded-4 p-4 animate__animated animate__fadeIn">
+
+
+  <div class="title-banner text-center mb-4 animate__animated animate__fadeInDown">
+    <h2 class="fw-bold mb-1">{{ course.title }}</h2>
+    {% if course.description %}
+      <p class="fst-italic mb-0">{{ course.description }}</p>
+    {% endif %}
+  </div>
+
+  
+  <h5 class="fw-semibold mb-3"> Danh sách file câu hỏi</h5>
+  <ul class="list-group mb-4">
+    {% for file in question_files %}
+      <li class="list-group-item d-flex justify-content-between align-items-start shadow-sm rounded-3 mb-2 animate__animated animate__fadeInUp">
+        <div>
+          <strong>{{ file.file.name|cut:"question_files/" }}</strong>
+          <div class="small text-muted"> {{ file.uploaded_at|date:"d/m/Y H:i" }}</div>
+          <div class="small text-muted"> Uploaded by: {{ file.uploaded_by.username }}</div>
+        </div>
+        <div class="btn-group">
+          <a href="?file_id={{ file.id }}" class="btn btn-outline-primary btn-sm hover-zoom"> Xem</a>
+          <a href="{{ file.file.url }}" target="_blank" class="btn btn-outline-secondary btn-sm hover-zoom"> Tải về</a>
+          
+          {% if file.file.name|lower|slice:"-5:" == ".docx" or file.file.name|lower|slice:"-4:" == ".txt" %}
+            <a href="{% url 'quiz_from_file' course.id file.id %}" class="btn btn-success btn-sm hover-zoom"> Quiz</a>
+            <a href="{% url 'flashcards_from_file' course.id file.id %}" class="btn btn-info btn-sm hover-zoom"> Flashcards</a>
+          {% else %}
+            <button class="btn btn-light btn-sm" disabled title="Chỉ hỗ trợ DOCX/TXT"> Quiz/Flashcards</button>
+          {% endif %}
+
+          {% if course.owner == user %}
+            <a href="{% url 'delete_question_file' course.id file.id %}"
+               class="btn btn-danger btn-sm hover-zoom"
+               onclick="return confirm('Bạn có chắc muốn xóa file này?');"> Xóa</a>
+          {% endif %}
+        </div>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-center text-muted"> Chưa có file nào.</li>
+    {% endfor %}
+  </ul>
+
+ 
+  {% if file_content %}
+    <div class="card mb-4 border-0 shadow-sm animate__animated animate__fadeIn">
+      <div class="card-body">
+        <h6 class="fw-bold text-secondary"> Nội dung file: {{ selected_file.file.name|cut:"question_files/" }}</h6>
+      
+        <button id="toggleContentBtn" class="btn btn-outline-primary btn-sm mb-3"> Xem nội dung</button>
+       
+        <pre id="fileContent" class="bg-light p-3 rounded-3" 
+             style="white-space:pre-wrap; max-height:300px; overflow-y:auto; display:none;">
+          {{ file_content|truncatechars:3000 }}
+        </pre>
+      </div>
+    </div>
+  {% elif file_type == "pdf" %}
+    <div class="card mb-4 border-0 shadow-sm animate__animated animate__fadeIn">
+      <div class="card-body">
+        <h6 class="fw-bold text-secondary"> File PDF: {{ selected_file.file.name|cut:"question_files/" }}</h6>
+        <p>File PDF không hiển thị nội dung trực tiếp. Vui lòng tải xuống:</p>
+        <a href="{{ file_url }}" target="_blank" class="btn btn-outline-secondary">⬇ Tải về</a>
+      </div>
+    </div>
+  {% endif %}
+
+
+  <div class="d-flex gap-3 mt-3">
+    {% if course.owner == user %}
+      <a href="{% url 'upload_question_file' course.id %}" class="btn btn-primary hover-zoom"> Upload file</a>
+      <a href="{% url 'manage_enrollments' course.id %}" class="btn btn-outline-primary hover-zoom"> Quản lý học viên</a>
+    {% endif %}
+    <a href="{% url 'home' %}" class="btn btn-secondary hover-zoom"> Trang chủ</a>
+  </div>
+</div>
+
+
+<p class="text-center mt-4 text-muted small animate__animated animate__fadeInUp">
+   Web được tạo ra bởi <strong>Sơn Giang</strong>
+</p>
+
+
+<style>
+  .title-banner {
+    background: linear-gradient(135deg, #4e73df, #1cc88a);
+    color:#fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+  }
+  .title-banner h2 { font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; }
+  .title-banner p { opacity: 0.9; }
+  .title-banner::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,0.3);
+    transform: skewX(-30deg);
+    transition: 0.7s;
+  }
+  .title-banner:hover::after { left: 100%; }
+  .hover-zoom { transition: all 0.2s ease-in-out; }
+  .hover-zoom:hover { transform: scale(1.08); }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const btn = document.getElementById("toggleContentBtn");
+  const content = document.getElementById("fileContent");
+
+  if (btn && content) {
+    btn.addEventListener("click", function() {
+      if (content.style.display === "none") {
+        content.style.display = "block";
+        btn.textContent = " Ẩn nội dung";
+      } else {
+        content.style.display = "none";
+        btn.textContent = " Xem nội dung";
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

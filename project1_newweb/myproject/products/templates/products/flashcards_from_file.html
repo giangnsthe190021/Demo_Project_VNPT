@@ -1,0 +1,356 @@
+{% extends 'products/base.html' %}
+{% block title %}Flashcards: {{ file.name }}{% endblock %}
+{% block content %}
+
+<style>
+ 
+  .card.card-custom.p-4 {
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%);
+    border-radius: 16px;
+    box-shadow: 0 10px 28px rgba(75, 0, 130, 0.12);
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .card.card-custom.p-4 h4 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: #4a148c;
+    position: relative;
+    padding-bottom: 0.4rem;
+  }
+  .card.card-custom.p-4 h4::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 60px;
+    height: 4px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #7e57c2, #42a5f5);
+  }
+
+
+  .flashcard {
+    perspective: 1000px;
+    height: 200px;
+    margin-bottom: 20px;
+  }
+  
+  .flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+    cursor: pointer;
+  }
+  
+  .flashcard.flipped .flashcard-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .flashcard-front, .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+  }
+  
+  .flashcard-front {
+    background: linear-gradient(145deg, #e3f2fd, #fff);
+    border-color: #2196f3;
+  }
+  
+  .flashcard-back {
+    background: linear-gradient(145deg, #e8f5e8, #fff);
+    transform: rotateY(180deg);
+    border-color: #4caf50;
+  }
+  
+
+  .question-content {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1565c0;
+    line-height: 1.4;
+    text-align: center;
+  }
+  
+  .answer-content {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #2e7d32;
+    line-height: 1.5;
+    text-align: center;
+  }
+  
+  .card-label {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: rgba(255,255,255,0.9);
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .question-label {
+    color: #1565c0;
+    background: rgba(33, 150, 243, 0.1);
+  }
+  
+  .answer-label {
+    color: #2e7d32;
+    background: rgba(76, 175, 80, 0.1);
+  }
+  
+
+  .btn-outline-primary {
+    border-radius: 8px;
+    border: 2px solid #7e57c2;
+    color: #7e57c2;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    padding: 8px 20px;
+    margin: 5px;
+  }
+  
+  .btn-outline-primary:hover {
+    background: linear-gradient(90deg,#7e57c2,#42a5f5);
+    color: #fff;
+    border-color: transparent;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(66,165,245,0.3);
+  }
+  
+  .btn-success {
+    background: linear-gradient(90deg, #4caf50, #66bb6a);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    margin: 5px;
+  }
+  
+  .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(76, 175, 80, 0.3);
+  }
+  
+
+  .stats-container {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .stat-item {
+    display: inline-block;
+    margin: 0 15px;
+    font-weight: 600;
+  }
+  
+  .stat-number {
+    font-size: 1.2rem;
+    color: #7e57c2;
+  }
+  
+
+  .instructions {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    border-left: 4px solid #ff9800;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 0 8px 8px 0;
+  }
+  
+  .instructions h6 {
+    color: #f57c00;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  
+  .instructions p {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #e65100;
+  }
+</style>
+
+<div class="card card-custom p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4> Flashcards từ: {{ file.name|default:file.file.name }}</h4>
+    <a href="{% url 'course_detail' course.id %}?file_id={{ file.id }}" class="btn btn-secondary btn-sm">← Quay lại</a>
+  </div>
+  
+
+  <div class="stats-container">
+    <div class="stat-item">
+      <div class="stat-number">{{ cards|length }}</div>
+      <div>Tổng số thẻ</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" id="flipped-count">0</div>
+      <div>Đã lật</div>
+    </div>
+  </div>
+  
+
+  <div class="instructions">
+    <h6>📖 Hướng dẫn sử dụng:</h6>
+    <p>• Nhấn vào thẻ để lật và xem đáp án</p>
+    <p>• Sử dụng "Xáo trộn" để thay đổi thứ tự ngẫu nhiên</p>
+    <p>• "Lật tất cả" để xem tất cả đáp án cùng lúc</p>
+    <p>• "Reset" để quay về trạng thái ban đầu</p>
+  </div>
+  
+
+  <div class="text-center mb-4">
+    <button class="btn btn-outline-primary" onclick="shuffleCards()">🔀 Xáo trộn</button>
+    <button class="btn btn-outline-primary" onclick="flipAllCards()">👁️ Lật tất cả</button>
+    <button class="btn btn-success" onclick="resetAllCards()">🔄 Reset</button>
+  </div>
+  
+  <hr>
+  
+
+  <div class="row" id="cards-container">
+    {% for c in cards %}
+      <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+        <div class="flashcard" onclick="flipCard(this)">
+          <div class="flashcard-inner">
+            <div class="flashcard-front">
+              <div class="card-label question-label">Câu hỏi</div>
+              <div class="question-content">{{ c.front }}</div>
+            </div>
+            <div class="flashcard-back">
+              <div class="card-label answer-label">Đáp án</div>
+              <div class="answer-content">{{ c.back }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  
+  {% if not cards %}
+    <div class="text-center py-5">
+      <h5 class="text-muted">Không tìm thấy flashcards</h5>
+      <p class="text-muted">Hãy đảm bảo file Word có định dạng:</p>
+      <div class="alert alert-info">
+        <strong>Cách 1:</strong> Câu hỏi (text thường) + Đáp án (text in đậm)<br>
+        <strong>Cách 2:</strong> Format quiz với đáp án đúng được in đậm
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+let flippedCount = 0;
+let allFlipped = false;
+
+function updateFlippedCount() {
+  document.getElementById('flipped-count').textContent = flippedCount;
+}
+
+function flipCard(card) {
+  const wasFlipped = card.classList.contains('flipped');
+  card.classList.toggle('flipped');
+  
+  if (!wasFlipped && card.classList.contains('flipped')) {
+    flippedCount++;
+  } else if (wasFlipped && !card.classList.contains('flipped')) {
+    flippedCount--;
+  }
+  
+  updateFlippedCount();
+}
+
+function shuffleCards() {
+  const container = document.getElementById('cards-container');
+  const cards = Array.from(container.children);
+  
+
+  for (let i = cards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cards[i], cards[j]] = [cards[j], cards[i]];
+  }
+  
+
+  cards.forEach(card => container.appendChild(card));
+  
+
+  container.style.transform = 'scale(0.95)';
+  setTimeout(() => {
+    container.style.transform = 'scale(1)';
+  }, 200);
+}
+
+function flipAllCards() {
+  const cards = document.querySelectorAll('.flashcard');
+  
+  if (allFlipped) {
+
+    cards.forEach(card => {
+      if (card.classList.contains('flipped')) {
+        card.classList.remove('flipped');
+      }
+    });
+    flippedCount = 0;
+    allFlipped = false;
+    document.querySelector('[onclick="flipAllCards()"]').innerHTML = ' Lật tất cả';
+  } else {
+
+    cards.forEach(card => {
+      if (!card.classList.contains('flipped')) {
+        card.classList.add('flipped');
+      }
+    });
+    flippedCount = cards.length;
+    allFlipped = true;
+    document.querySelector('[onclick="flipAllCards()"]').innerHTML = ' Ẩn tất cả';
+  }
+  
+  updateFlippedCount();
+}
+
+function resetAllCards() {
+  const cards = document.querySelectorAll('.flashcard');
+  cards.forEach(card => {
+    card.classList.remove('flipped');
+  });
+  flippedCount = 0;
+  allFlipped = false;
+  document.querySelector('[onclick="flipAllCards()"]').innerHTML = ' Lật tất cả';
+  updateFlippedCount();
+  
+
+  document.getElementById('cards-container').style.opacity = '0.7';
+  setTimeout(() => {
+    document.getElementById('cards-container').style.opacity = '1';
+  }, 300);
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  updateFlippedCount();
+});
+
+
+document.getElementById('cards-container').style.transition = 'all 0.3s ease';
+</script>
+
+{% endblock %}

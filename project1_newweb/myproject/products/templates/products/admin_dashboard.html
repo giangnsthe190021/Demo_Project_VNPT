@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 50;
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+        }
+        .modal.show {
+            display: block;
+        }
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6 text-center">Admin Dashboard</h1>
+        <p class="text-lg mb-4">Chào mừng, {{ request.user.username }}! Bạn có quyền quản trị toàn bộ hệ thống.</p>
+
+        <div class="mb-6">
+            <a href="{% url 'logout' %}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Đăng xuất</a>
+        </div>
+
+        <div class="section mb-10">
+            <h2 class="text-2xl font-semibold mb-4">Quản lý khóa học</h2>
+            <button onclick="openAddCourseModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4">Tạo khóa học mới</button>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-300">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4">Tên khóa học</th>
+                            <th class="py-2 px-4">Mô tả</th>
+                            <th class="py-2 px-4">Chủ sở hữu</th>
+                            <th class="py-2 px-4">Người học</th>
+                            <th class="py-2 px-4">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in courses %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-2 px-4">{{ course.title }}</td>
+                            <td class="py-2 px-4">{{ course.description|truncatewords:20 }}</td>
+                            <td class="py-2 px-4">
+                                <a href="{% url 'view_user_profile' course.owner.id %}" class="text-blue-500 hover:underline">
+                                    {{ course.owner.username }}
+                                </a>
+                            </td>
+                            <td class="py-2 px-4">
+                                {% with enrollments=course.enrollments.all %}
+                                    {% if enrollments %}
+                                        <ul class="list-disc pl-5">
+                                            {% for enrollment in enrollments %}
+                                                <li>
+                                                    <a href="{% url 'view_user_profile' enrollment.student.id %}" class="text-blue-500 hover:underline">
+                                                        {{ enrollment.student.username }}
+                                                    </a>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        Không có người học
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td class="py-2 px-4">
+                                <a href="{% url 'course_detail' course.id %}" class="text-blue-500 hover:underline">Xem</a> |
+                                <a href="{% url 'manage_enrollments' course.id %}" class="text-blue-500 hover:underline">Quản lý học viên</a> |
+                                <a href="{% url 'upload_question_file' course.id %}" class="text-blue-500 hover:underline">Upload tài liệu</a> |
+                                <button onclick="confirmDeleteCourse('{{ course.id }}', '{{ course.title }}')" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Xóa</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-2 px-4 text-center">Chưa có khóa học nào.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+     
+        <div class="section">
+            <h2 class="text-2xl font-semibold mb-4">Quản lý người dùng</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-300">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4">Tên đăng nhập</th>
+                            <th class="py-2 px-4">Admin</th>
+                            <th class="py-2 px-4">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-2 px-4">{{ user.username }}</td>
+                            <td class="py-2 px-4">{{ user.profile.is_admin|yesno:"Có,Không" }}</td>
+                            <td class="py-2 px-4">
+                                <a href="{% url 'view_user_profile' user.id %}" class="text-blue-500 hover:underline">Xem hồ sơ</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="py-2 px-4 text-center">Chưa có người dùng nào.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    
+        <div id="addCourseModal" class="modal">
+            <div class="modal-content">
+                <h2 class="text-2xl font-bold mb-4">Thêm khóa học mới</h2>
+                <form id="addCourseForm" action="{% url 'create_course' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="title" class="block text-sm font-medium text-gray-700">Tên khóa học</label>
+                        <input type="text" id="title" name="title" class="mt-1 block w-full border border-gray-300 rounded p-2" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="description" class="block text-sm font-medium text-gray-700">Mô tả</label>
+                        <textarea id="description" name="description" class="mt-1 block w-full border border-gray-300 rounded p-2" rows="4" required></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="closeAddCourseModal()" class="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600">Hủy</button>
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Thêm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openAddCourseModal() {
+            document.getElementById('addCourseModal').classList.add('show');
+        }
+
+        function closeAddCourseModal() {
+            document.getElementById('addCourseModal').classList.remove('show');
+        }
+
+        function confirmDeleteCourse(courseId, courseTitle) {
+            if (confirm(`Bạn có chắc chắn muốn xóa khóa học "${courseTitle}"?`)) {
+                fetch(`/course/${courseId}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Lỗi khi xóa khóa học.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Lỗi khi xóa khóa học.');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

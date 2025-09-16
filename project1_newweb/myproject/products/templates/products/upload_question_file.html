@@ -1,0 +1,233 @@
+{% extends 'products/base.html' %}
+{% block title %}Upload file câu hỏi{% endblock %}
+{% block content %}
+<style>
+ 
+  .upload-container {
+    background: linear-gradient(135deg, #FCE4EC, #E3F2FD, #E8F5E9);
+    background-size: 300% 300%;
+    animation: gradientBG 18s ease infinite;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(123, 31, 162, 0.2);
+    max-width: 700px;
+    margin: auto;
+  }
+
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+ 
+  .upload-title {
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    color: #6A1B9A;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    display: inline-block;
+    padding-bottom: 10px;
+  }
+
+  .upload-title::after {
+    content: "";
+    position: absolute;
+    width: 60%;
+    height: 4px;
+    background: linear-gradient(90deg, #BA68C8, #7E57C2);
+    bottom: 0;
+    left: 20%;
+    border-radius: 2px;
+    animation: glow 2s infinite alternate;
+  }
+
+  @keyframes glow {
+    from { box-shadow: 0 0 5px #BA68C8; }
+    to { box-shadow: 0 0 15px #7E57C2; }
+  }
+
+  
+  .form-label {
+    font-weight: 600;
+    color: #4527A0;
+  }
+
+  .form-control {
+    border-radius: 8px;
+    padding: 10px;
+    transition: 0.3s;
+    border: 1px solid #CE93D8;
+  }
+
+  .form-control:focus {
+    border-color: #7E57C2;
+    box-shadow: 0 0 8px rgba(123, 31, 162, 0.4);
+  }
+
+
+  .btn-primary {
+    background: linear-gradient(45deg, #AB47BC, #7E57C2);
+    border: none;
+    padding: 12px 25px;
+    font-weight: bold;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.4s ease;
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 0 20px rgba(123, 31, 162, 0.4);
+  }
+
+  
+  .btn-back {
+    background: #f1f1f1;
+    border: 1px solid #ccc;
+    padding: 12px 25px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    color: #333;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-back:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+  }
+
+
+  .success-message {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+    color: #2E7D32;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
+    animation: successFadeIn 0.8s ease-in-out;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .success-message::after {
+    content: "Sơn Giang © 2025";
+    position: absolute;
+    bottom: 5px;
+    right: 10px;
+    font-size: 0.8rem;
+    color: rgba(46, 125, 50, 0.7);
+    font-style: italic;
+  }
+
+  @keyframes successFadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .alert {
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-weight: 500;
+    animation: fadeIn 0.6s ease;
+    margin-top: 20px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<div class="upload-container">
+  <h2 class="upload-title">Upload file câu hỏi cho {{ course.title|default:'' }}</h2>
+
+  {% if messages %}
+      {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+  {% endif %}
+
+  <form id="uploadForm" method="post" enctype="multipart/form-data" data-course-id="{{ course.id|default:0 }}">
+      {% csrf_token %}
+      <div class="mb-3">
+          <label for="id_file" class="form-label">Chọn file:</label>
+          <input type="file" name="file" id="id_file" class="form-control" required>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Upload</button>
+        
+        <a href="{% url 'course_detail' course.id %}" class="btn btn-back">⬅ Quay lại</a>
+      </div>
+  </form>
+
+  <div id="uploadStatus" style="margin-top:1rem;"></div>
+</div>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+    const csrfElem = document.getElementsByName('csrfmiddlewaretoken')[0];
+    const csrfToken = csrfElem ? csrfElem.value : null;
+    const courseId = form.dataset.courseId || '0';
+
+    const statusDiv = document.getElementById('uploadStatus');
+    statusDiv.innerHTML = '<div class="alert alert-info">Đang upload...</div>';
+
+    if (!courseId || isNaN(courseId)) {
+        statusDiv.innerHTML = '<div class="alert alert-danger">Lỗi: ID khóa học không hợp lệ.</div>';
+        return;
+    }
+
+    try {
+        const resp = await fetch(`/course/${courseId}/upload/`, {
+            method: 'POST',
+            body: formData,
+            headers: csrfToken ? { 'X-CSRFToken': csrfToken } : {},
+            credentials: 'include'
+        });
+
+        const contentType = resp.headers.get('content-type') || '';
+        const text = await resp.text();
+
+        if (contentType.includes('application/json')) {
+            let data = {};
+            try { 
+                data = JSON.parse(text); 
+            } catch (err) {
+                statusDiv.innerHTML = '<div class="alert alert-danger">Lỗi: JSON không hợp lệ - ' + text + '</div>';
+                return;
+            }
+            if (resp.ok && data.message === "đã upfile thành công") {
+                statusDiv.innerHTML = '<div class="success-message">Đã upload file thành công!</div>';
+                form.reset();
+                setTimeout(() => statusDiv.innerHTML = '', 5000); 
+            } else {
+                statusDiv.innerHTML = '<div class="alert alert-danger">Lỗi: ' + (data.message || 'Không xác định') + '</div>';
+            }
+        } else {
+            statusDiv.innerHTML = '<div class="alert alert-danger">Server trả không phải JSON (status: ' + resp.status + '):<pre>' + text.replace(/</g,'&lt;') + '</pre></div>';
+        }
+    } catch (err) {
+        statusDiv.innerHTML = '<div class="alert alert-danger">Lỗi kết nối: ' + err.message + '</div>';
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+  if (performance && performance.navigation.type === 2) {
+    location.reload();
+  }
+});
+</script>
+{% endblock %}

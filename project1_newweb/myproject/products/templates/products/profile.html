@@ -1,0 +1,177 @@
+{% extends 'products/base.html' %}
+{% load static %}
+{% block title %}Hồ sơ{% endblock %}
+{% block content %}
+<div class="container py-4">
+  
+  <div class="profile-title text-center mb-4 p-3">
+    <h1 class="animated-title">Hi, Well Come to my profile</h1>
+  </div>
+
+ 
+  <div class="card profile-card shadow-lg mb-4">
+    <div class="card-body d-flex flex-column flex-md-row align-items-center gap-4">
+      
+      
+      <div class="profile-info flex-grow-1">
+        <h4 class="card-title text-center text-md-start mb-3 user-info-title">Thông tin người dùng</h4>
+        <p><strong>Tài khoản:</strong> {{ request.user.username }}</p>
+        <p><strong>Email:</strong> {{ request.user.email }}</p>
+        <p><strong>Họ tên:</strong> {{ request.user.first_name }} {{ request.user.last_name }}</p>
+        <hr class="divider">
+        <p><strong>Địa chỉ:</strong> {{ profile.address }}</p>
+        <p><strong>Số điện thoại:</strong> {{ profile.phone_number }}</p>
+        <p><strong>Ghi chú:</strong> {{ profile.note }}</p>
+      </div>
+
+      
+      <div class="avatar-wrapper text-center">
+        {% if profile.avatar %}
+          <img src="{{ profile.avatar.url }}" alt="Avatar" class="profile-avatar-square">
+        {% else %}
+          <img src="{% static 'images/default-avatar.png' %}" alt="Avatar" class="profile-avatar-square">
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  
+  <div class="card course-card mb-4">
+    <div class="card-header text-white text-center" style="background:linear-gradient(45deg,#FF69B4,#87CEFA);">
+      <h5 class="m-0"> Khóa học sở hữu</h5>
+    </div>
+    <div class="card-body">
+      <ul>
+        {% for course in request.user.owned_courses.all %}
+          <li>
+            <a href="{% url 'course_detail' course.id %}" class="course-link">{{ course.title }}</a>
+            <small>(Tạo ngày: {{ course.created_at|date:"d/m/Y" }})</small>
+          </li>
+        {% empty %}
+          <li>Chưa sở hữu khóa học nào.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+ 
+  <div class="card course-card mb-4">
+    <div class="card-header text-white text-center" style="background:linear-gradient(45deg,#87CEFA,#FF69B4);">
+      <h5 class="m-0"> Khóa học tham gia</h5>
+    </div>
+    <div class="card-body">
+      <ul>
+        {% for enrollment in request.user.enrolled_courses.all %}
+          <li>
+            <span class="course-link">{{ enrollment.course.title }}</span>
+            <small>(Ghi danh ngày: {{ enrollment.enrolled_at|date:"d/m/Y" }})</small>
+          </li>
+        {% empty %}
+          <li>Chưa tham gia khóa học nào.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+
+  <div class="text-center mt-4">
+    <a class="btn btn-pink mx-2" href="{% url 'update_user' %}">✏️ Chỉnh sửa</a>
+    <a class="btn btn-sky mx-2" href="{% url 'home' %}">🏠 Quay lại trang chủ</a>
+  </div>
+</div>
+
+
+<style>
+
+.avatar-wrapper {
+  width: 450px;
+  height: 450px;
+  flex-shrink: 0;
+  margin-right: 75px;
+}
+.profile-avatar-square {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 3px solid #FF69B4;
+  box-shadow: 0 6px 16px rgba(255,105,180,0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.profile-avatar-square:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 24px rgba(255,105,180,0.6);
+}
+
+
+.profile-info {
+  flex-grow: 1;
+  margin-left: 50px;
+}
+
+
+.animated-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 5rem;
+  font-weight: 800;
+  display: inline-block;
+  background: linear-gradient(270deg, #FF69B4, #87CEFA, #FFD700, #FF1493);
+  background-size: 800% 800%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: gradientSlide 8s ease infinite;
+  text-shadow: 2px 2px 12px rgba(0,0,0,0.2);
+  transition: transform 0.3s ease, text-shadow 0.3s ease;
+  cursor: pointer;
+  background-clip: text; 
+    color: transparent; 
+}
+.animated-title:hover {
+  transform: scale(1.15) rotate(-2deg);
+  text-shadow: 4px 4px 16px rgba(0,0,0,0.3), 0 0 25px rgba(255,105,180,0.6);
+}
+@keyframes gradientSlide {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+.user-info-title {
+  font-family: 'Roboto Slab', serif;
+  font-size: 4rem;
+  font-weight: 700;
+  color: #FF69B4; 
+}
+
+
+.profile-info p {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5rem;
+  color: #333; 
+}
+
+
+.profile-info hr.divider {
+  width: 50%;
+  margin-left: 0;
+  border: none;
+  border-top: 2px solid #ccc;
+  margin: 10px 0;
+}
+
+
+.course-card .card-header h5 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 3rem;
+}
+
+
+.course-link {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5rem;
+}
+</style>
+{% endblock %}

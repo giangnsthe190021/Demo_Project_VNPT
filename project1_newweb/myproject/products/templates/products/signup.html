@@ -1,0 +1,21 @@
+{% extends 'products/base.html' %}
+{% block title %}Đăng ký{% endblock %}
+{% block content %}
+<h2>Đăng ký</h2>
+<form method="post">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Tên đăng nhập</label>
+    <input class="form-control" name="username" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Mật khẩu</label>
+    <input class="form-control" type="password" name="password" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Xác nhận mật khẩu</label>
+    <input class="form-control" type="password" name="confirm_password" required>
+  </div>
+  <button class="btn btn-primary" type="submit">Đăng ký</button>
+</form>
+{% endblock %}
