@@ -1,0 +1,48 @@
+BÁO CÁO HỆ THỐNG QUẢN TRỊ NGƯỜI DÙNG, KHÓA HỌC, QUIZ/FLASHCARD
+
+1. Nguyên lý hoạt động
+Hệ thống hoạt động dựa trên kiến trúc MVC (Model-View-Controller) của Django. Nguyên lý hoạt động bao gồm các bước: 
+1. Người dùng đăng nhập/đăng ký thông qua hệ thống xác thực Django. 
+2. Người dùng có thể tạo, chỉnh sửa hoặc xóa khóa học. 
+3. Người dùng upload file Word, hệ thống xử lý và trích xuất dữ liệu. 
+4. Từ dữ liệu trích xuất, hệ thống sinh quiz và flashcard, lưu vào database. 
+5. Người dùng truy cập chế độ học tập (quiz/flashcard). 
+6. Admin/giáo viên quản lý quyền truy cập và thông tin người dùng.
+
+
+2. Sơ đồ nguyên lý hoạt động
+Sơ đồ dưới đây mô tả luồng hoạt động chính của hệ thống:
+
+Người dùng → (Đăng nhập/Đăng ký) → Hệ thống xác thực Django → Dashboard người dùng
+  ├─> Tạo/Sửa/Xóa Khóa học → Views → Database: Course Model
+  ├─> Upload file Word → Hàm xử lý Word → Quiz/Flashcard Generator → Database
+  └─> Làm quiz/Flashcard → Views → Database
+Admin/Teacher → Quản lý user & cấp quyền → Views → Database: User & Permission
+    
+
+
+3. Kiến trúc và Flow chi tiết
+• User (Người dùng/Học viên): đăng ký, đăng nhập, tham gia khóa học, làm quiz/flashcard.
+• Course (Khóa học): CRUD khóa học, gắn với học viên, chứa nội dung học tập.
+• File Upload: nhận file Word từ người dùng, phân tích và trích xuất dữ liệu.
+• Quiz & Flashcard: sinh tự động từ dữ liệu Word, phục vụ ôn tập.
+• Admin/Teacher: quản lý hệ thống, phân quyền, theo dõi tiến độ.
+
+
+4. Giải thích Views và liên kết
+Trong file views.py, các hàm chính đảm nhiệm vai trò sau:
+• Hàm quản lý người dùng: đăng ký, đăng nhập, đăng xuất.
+• Hàm quản lý khóa học: thêm, xóa, sửa, hiển thị khóa học.
+• Hàm upload file: nhận file Word, xử lý và trích xuất dữ liệu.
+• Hàm sinh quiz/flashcard: tạo dữ liệu ôn tập và lưu vào database.
+• Hàm hiển thị quiz/flashcard: cung cấp giao diện ôn tập cho người dùng.
+
+Các views này liên kết chặt chẽ với:
+- Models: định nghĩa cấu trúc dữ liệu (User, Course, Quiz, Flashcard).
+- Forms: kiểm tra và xác thực dữ liệu nhập từ người dùng.
+- Templates: hiển thị giao diện web động.
+- Database: nơi lưu trữ thông tin lâu dài.
+
+
+5. Kết luận
+Hệ thống quản trị này cho phép quản lý toàn diện từ người dùng, khóa học đến công cụ ôn tập (quiz/flashcard). Việc tích hợp xử lý file Word giúp giáo viên dễ dàng biến tài liệu giảng dạy thành công cụ học tập tương tác. Hệ thống vận hành dựa trên Django, bảo đảm khả năng mở rộng, tính bảo mật và hiệu quả trong quản lý đào tạo trực tuyến.
