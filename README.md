@@ -76,7 +76,7 @@ Hiện tại có các tài khoản:
 - pass: 12345
 
 
-## Các chức năng của web##
+## Các chức năng của web ##
 - Tạo người dùng
 - Tạo khóa học
 - Thêm dữ liệu khóa học từ file docs
