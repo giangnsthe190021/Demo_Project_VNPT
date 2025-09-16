@@ -44,7 +44,7 @@ Mục tiêu của dự án là tự động hóa quy trình dạy - học, giúp
 ---
 
 ## Hướng phát triển
-- Tích hợp API để cho phép import dữ liệu từ nhiều định dạng khác nhau (PDF, Excel).  
+- Tích hợp API để cho phép import dữ liệu từ nhiều định dạng khác nhau.  
 - Phát triển tính năng học nhóm và thống kê kết quả học tập.  
 - Tích hợp trí tuệ nhân tạo để sinh câu hỏi ôn tập thông minh hơn.  
 
@@ -86,4 +86,6 @@ Hiện tại có các tài khoản:
 - Xóa khóa học
 - Cập nhật thông tin người dùng ( Tên, SDT, Gmail, Địa chỉ nhà, Ghi chú, Ảnh đại diện)
 
-
+Khi muốn chạy:
+- **cd** đến thư mục **myproject** ( "cd .\Demo_Project_VNPT-main\project1_newweb\myproject\" )
+- Dùng lệnh **python manage.py runserver**
