@@ -53,6 +53,7 @@ Mục tiêu của dự án là tự động hóa quy trình dạy - học, giúp
 
 ## Hướng dẫn sử dụng: ##
 Hiện tại có các tài khoản:
+
 +) Admin_User: (Có thể truy cập vào các Courses đã tạo, xem thông tin và cập nhật thông tin người dùng ) 
 - User: Giang_Admin
 - pass: Tham091105$
