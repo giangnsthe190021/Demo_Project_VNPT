@@ -90,3 +90,4 @@ Hiện tại có các tài khoản:
 Khi muốn chạy:
 - **cd** đến thư mục **myproject** ( "cd .\Demo_Project_VNPT-main\project1_newweb\myproject\" )
 - Dùng lệnh **python manage.py runserver**
+- cài python-docx nếu cần 
